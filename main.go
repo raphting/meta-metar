@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"github.com/gookit/color"
 	"regexp"
 	"strconv"
 )
@@ -47,7 +47,28 @@ func main() {
 	m.markCloudbase()
 	m.markCriticalWeather()
 	m.markConvectiveClouds()
-	fmt.Println(m)
+
+	alertArea := make(map[int]int)
+	for _, warn := range m.alerts {
+		alertArea[warn.startIndex] = warn.endIndex
+	}
+
+	out := ""
+	nextEnd := -1
+	for i, metarChar := range m.metarText {
+		if end, found := alertArea[i]; found {
+			nextEnd = end
+			out += "<red>"
+		}
+
+		out += string(metarChar)
+
+		if i == nextEnd {
+			out += "</>"
+		}
+	}
+
+	color.Println(out)
 }
 
 func newMETAR(metar string) METAR {
@@ -138,7 +159,7 @@ func (m *METAR) markCloudbase() {
 }
 
 func (m *METAR) markWind() {
-	windspeed := regexp.MustCompile("(?:VRB|\\d{3})(\\d{2})KT")
+	windspeed := regexp.MustCompile("(?:VRB)?(?:\\d{3})?(\\d{2})KT")
 	wind := windspeed.FindStringSubmatch(m.metarText)
 	if len(wind) == 0 {
 		return
