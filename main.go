@@ -1,7 +1,9 @@
 package main
 
 import (
-	"github.com/gookit/color"
+	"fmt"
+	"log"
+	"net/http"
 )
 
 type tokenType uint8
@@ -26,9 +28,14 @@ type METAR struct {
 }
 
 func main() {
+	http.HandleFunc("/", metarRequest)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
 
-	metar := retrieveMETAR("EDDH")
-
+func metarRequest(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	icaoCode := query.Get("icao")
+	metar := retrieveMETAR(icaoCode)
 	m := newMETAR(metar)
 
 	m.markWind()
@@ -37,6 +44,8 @@ func main() {
 	m.markCriticalWeather()
 	m.markConvectiveClouds()
 
-	out := m.colorAreas()
-	color.Println(out)
+	_, err := fmt.Fprint(w, parseMetarTemplate(icaoCode, m.colorAreas("<b>", "</b>")))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
