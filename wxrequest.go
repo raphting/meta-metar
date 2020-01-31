@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 )
@@ -16,18 +15,15 @@ func retrieveMETAR(icao string) string {
 	}
 	icao = strings.ToUpper(icao)
 
-	// Prepare request
-	h := http.Header{}
-	h.Add("X-API-Key", os.Getenv("M_API_KEY"))
-
-	uParsed, err := url.Parse(fmt.Sprintf("https://api.checkwx.com/metar/%s", icao))
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://api.checkwx.com/metar/%s", icao), nil)
 	if err != nil {
 		fmt.Println(err.Error())
 		return ""
 	}
+	req.Header.Add("X-API-Key", os.Getenv("M_API_KEY"))
 
 	c := http.Client{}
-	resp, err := c.Do(&http.Request{Header: h, URL: uParsed})
+	resp, err := c.Do(req)
 	if err != nil {
 		fmt.Println(err.Error())
 		return ""
