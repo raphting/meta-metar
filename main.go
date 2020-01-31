@@ -27,7 +27,7 @@ type METAR struct {
 
 func main() {
 
-	metar := "EHRD 312025Z AUTO 21017KT 170V240 9999 SCT013 OVC015 12/10 Q1005 BECMG BKN014"
+	metar := retrieveMETAR("EDDH")
 
 	m := newMETAR(metar)
 
@@ -38,6 +38,5 @@ func main() {
 	m.markConvectiveClouds()
 
 	out := m.colorAreas()
-
 	color.Println(out)
 }
