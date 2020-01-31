@@ -10,7 +10,7 @@ func newMETAR(metar string) METAR {
 }
 
 func (m *METAR) markVisibility() {
-	cloudbase := regexp.MustCompile(" (\\d{4}) ")
+	cloudbase := regexp.MustCompile(` (\d{4}) `)
 	viz := cloudbase.FindAllStringSubmatch(m.metarText, -1)
 	indices := cloudbase.FindAllStringSubmatchIndex(m.metarText, -1)
 
@@ -38,7 +38,7 @@ func (m *METAR) markVisibility() {
 }
 
 func (m *METAR) markConvectiveClouds() {
-	weather := regexp.MustCompile("\\S*(?:CB|TCU)\\S*")
+	weather := regexp.MustCompile(`\S*(?:CB|TCU)\S*`)
 	indices := weather.FindAllStringIndex(m.metarText, -1)
 	for _, i := range indices {
 		m.alerts = append(m.alerts, alert{
@@ -68,7 +68,7 @@ func (m *METAR) markCriticalWeather() {
 	//SA Sand
 	//VA Volcanic Ash
 
-	weather := regexp.MustCompile("\\S*(?:SH|TS|GR|GS|BR|DU|FG|FU|HZ|PY|SA|VA)\\S*")
+	weather := regexp.MustCompile(`\S*(?:SH|TS|GR|GS|BR|DU|FG|FU|HZ|PY|SA|VA)\S*`)
 	indices := weather.FindAllStringIndex(m.metarText, -1)
 	for _, i := range indices {
 		m.alerts = append(m.alerts, alert{
@@ -80,7 +80,7 @@ func (m *METAR) markCriticalWeather() {
 }
 
 func (m *METAR) markCloudbase() {
-	cloudbase := regexp.MustCompile("(?:FEW|SCT|BKN|OVC)(\\d{3})")
+	cloudbase := regexp.MustCompile(`(?:FEW|SCT|BKN|OVC)(\d{3})`)
 	clouds := cloudbase.FindAllStringSubmatch(m.metarText, -1)
 	cloudsIndices := cloudbase.FindAllStringSubmatchIndex(m.metarText, -1)
 	for i, c := range clouds {
@@ -97,7 +97,7 @@ func (m *METAR) markCloudbase() {
 }
 
 func (m *METAR) markWind() {
-	windspeed := regexp.MustCompile("(?:VRB)?(?:\\d{3})?(?:(\\d{2})G)?(\\d{2})KT")
+	windspeed := regexp.MustCompile(`(?:VRB)?(?:\d{3})?(?:(\d{2})G)?(\d{2})KT`)
 	wind := windspeed.FindAllStringSubmatch(m.metarText, -1)
 	// Check if wind is given
 	if len(wind) == 0 {
