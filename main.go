@@ -57,7 +57,7 @@ func main() {
 	nextEnd := -1
 	for i, metarChar := range m.metarText {
 		if end, found := alertArea[i]; found {
-			nextEnd = end
+			nextEnd = end - 1 // End is exclusive
 			out += "<red>"
 		}
 
