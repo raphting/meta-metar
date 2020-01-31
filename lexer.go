@@ -11,26 +11,30 @@ func newMETAR(metar string) METAR {
 
 func (m *METAR) markVisibility() {
 	cloudbase := regexp.MustCompile(" (\\d{4}) ")
-	viz := cloudbase.FindStringSubmatch(m.metarText)
-	if len(viz) < 2 {
-		return
-	}
+	viz := cloudbase.FindAllStringSubmatch(m.metarText, -1)
+	indices := cloudbase.FindAllStringSubmatchIndex(m.metarText, -1)
 
-	// Omit error checks because regexp finds ints
-	vizMeters, _ := strconv.Atoi(viz[1])
-	if vizMeters > 6000 {
-		return
-	}
+	for i, v := range viz {
+		// Prevent out-of-bounds
+		if len(v) < 2 {
+			continue
+		}
+		// Check club limits
+		vizMeters, _ := strconv.Atoi(v[1])
+		if vizMeters > 6000 {
+			continue
+		}
 
-	indices := cloudbase.FindStringSubmatchIndex(m.metarText)
-	if len(indices) < 4 {
-		return
+		// Prevent out-of-bounds
+		if len(indices[i]) < 4 {
+			continue
+		}
+		m.alerts = append(m.alerts, alert{
+			startIndex: indices[i][2],
+			endIndex:   indices[i][3],
+			token:      LOW_VIZ,
+		})
 	}
-	m.alerts = append(m.alerts, alert{
-		startIndex: indices[2],
-		endIndex:   indices[3],
-		token:      LOW_VIZ,
-	})
 }
 
 func (m *METAR) markConvectiveClouds() {
