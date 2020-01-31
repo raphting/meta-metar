@@ -97,20 +97,41 @@ func (m *METAR) markCloudbase() {
 }
 
 func (m *METAR) markWind() {
-	windspeed := regexp.MustCompile("(?:VRB)?(?:\\d{3})?(\\d{2})KT")
-	wind := windspeed.FindStringSubmatch(m.metarText)
+	windspeed := regexp.MustCompile("(?:VRB)?(?:\\d{3})?(?:(\\d{2})G)?(\\d{2})KT")
+	wind := windspeed.FindAllStringSubmatch(m.metarText, -1)
+	// Check if wind is given
 	if len(wind) == 0 {
 		return
 	}
 
-	// Omit error checks because regexp finds ints
-	windKT, _ := strconv.Atoi(wind[1])
-	if windKT > 12 {
-		indices := windspeed.FindStringSubmatchIndex(m.metarText)
-		m.alerts = append(m.alerts, alert{
-			startIndex: indices[0],
-			endIndex:   indices[1],
-			token:      STRONG_WIND,
-		})
+	indices := windspeed.FindAllStringSubmatchIndex(m.metarText, -1)
+
+	for i, w := range wind {
+		// prevent out-of-bounds
+		if len(w) < 2 {
+			continue
+		}
+
+		highWind := false
+		w1, _ := strconv.Atoi(w[1])
+		if w1 > 12 {
+			highWind = true
+		}
+
+		if len(w) == 3 {
+			w2, _ := strconv.Atoi(w[2])
+			if w2 > 12 {
+				highWind = true
+			}
+		}
+
+		if highWind {
+			m.alerts = append(m.alerts, alert{
+				startIndex: indices[i][0],
+				endIndex:   indices[i][1],
+				token:      STRONG_WIND,
+			})
+		}
 	}
+
 }
